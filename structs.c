@@ -20,9 +20,9 @@ typedef struct rect{
 
 typedef struct hilbert_node{
     bool is_leaf;
-    point* pnt = NULL;
+    point* pnt;
     rect r;
-    int num_membr = 0;
-    int lhv = 0;
-    node** children = NULL;
+    int num_membr;
+    int lhv;
+    node** children;
 }node;
