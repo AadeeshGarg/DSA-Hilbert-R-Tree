@@ -11,18 +11,22 @@ typedef struct point{
 }point;
 
 typedef struct rect{
-    int tl_x;
-    int tl_y;
-    int br_x;
-    int br_y;
+    int tlx;
+    int tly;
+    int brx;
+    int bry;
     int hv;
 }rect;
 
 typedef struct hilbert_node{
-    bool is_leaf;
+    bool isleaf;
     point* pnt;
     rect r;
     int num_membr;
     int lhv;
     node** children;
 }node;
+
+typedef struct hilbert_r_tree{
+    node* root;
+}hilbert_r_tree;
