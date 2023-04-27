@@ -52,6 +52,6 @@ void pre_order_traversal(NODE node) {
         pre_order_traversal(node->children[i]);
     }
 }
-
-
 //pre_order_traversal(tree.root);
+
+
