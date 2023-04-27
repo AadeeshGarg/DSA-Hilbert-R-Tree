@@ -18,15 +18,18 @@ typedef struct rect{
     int hv;
 }rect;
 
-typedef struct hilbert_node{
+typedef struct hilbert_node* node;
+struct hilbert_node{
     bool isleaf;
     point* pnt;
     rect r;
     int num_membr;
     int lhv;
-    node** children;
-}node;
+    node* children;
+};
+
 
 typedef struct hilbert_r_tree{
-    node* root;
+    node root;
+    int hilbertCurveOrder;
 }hilbert_r_tree;
