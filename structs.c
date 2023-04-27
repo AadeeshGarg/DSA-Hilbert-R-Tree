@@ -3,6 +3,8 @@
 #include<stdbool.h>
 
 #define DIMENSIONS 2
+#define m 2
+#define M 4
 
 typedef struct point{
     int p_x;
