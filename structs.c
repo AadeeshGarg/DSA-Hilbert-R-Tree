@@ -37,11 +37,15 @@ typedef struct hilbert_r_tree{
 }hilbert_r_tree;
 
 
+
+
+
 void pre_order_traversal(NODE node) {
     if (node == NULL) {
         return;
     }
-    if (node->is_leaf){
+
+    if (node->is_leaf) {
         printf("Leaf node containing point (%d, %d)\n", node->pnt->p_x, node->pnt->p_y);
     } else {
         printf("Internal node with MBR: Top-left (%d, %d), Bottom-right (%d, %d)\n",
@@ -52,6 +56,101 @@ void pre_order_traversal(NODE node) {
         pre_order_traversal(node->children[i]);
     }
 }
-//pre_order_traversal(tree.root);
+
+
+
+
+
+
+
+
+
+
+
+void changeFrame(int n, int *x, int *y, int quadrant) //n is sqaure size of hilbert curve
+{
+    switch(quadrant)
+    {
+        case 3:
+            *x = 2*n-1 - *x;
+            *y = n-1-*y;
+        case 0:
+            int temp = *x;
+            *x = *y;
+            *y = temp;
+            break;
+        case 2:
+            *x -=n;
+        case 1:
+            *y -=n;
+    }
+}
+
+int power(int x, int y)
+{
+    int ans = 1;
+    for(int i = 0;i<y;i++){
+        ans = ans * x;
+    }
+    return ans;
+}
+
+int pointToHV (int x, int y, int n) //n is order of hilbert curve
+{
+    int length = 0;
+    int quadrant;
+    for(int i = power(2, n-1);i>0;i/=2)
+    {
+        //printf("%d %d %d",i,x,y);
+        quadrant = ((x>=i)&&(y<i))*2+(y>=i)+(x>=i);
+        //printf(" %d  ", quadrant);
+        length += i*i * quadrant;
+        changeFrame(i,&x,&y,quadrant);
+    }
+    return length; 
+}
+
+
+
+bool intersect(rect r, rect q) {
+    // Check if r is completely to the left of q or vice versa
+    if (r.bottomright_x < q.topleft_x || q.bottomright_x < r.topleft_x) {
+        return false;
+    }
+    
+    // Check if r is completely above q or vice versa
+    if (r.bottomright_y > q.topleft_y || q.bottomright_y > r.topleft_y) {
+        return false;
+    }
+    
+    // If the above two conditions are false, then r and q must overlap
+    return true;
+}
+
+
+
+
+
+void Search(NODE node, rect R, int *result_set, int *count) {
+    if (node == NULL) {
+        return;
+    }
+
+    if (node->is_leaf) {
+        // Check if the leaf node intersects the rectangle R
+        if (node->pnt->p_x >= R.topleft_x && node->pnt->p_x <= R.bottomright_x && 
+            node->pnt->p_y <= R.topleft_y && node->pnt->p_y >= R.bottomright_y) {
+            result_set[*count] = node->pnt->hilbert_value;
+            (*count)++;
+        }
+    } else {
+        // Check if the internal node intersects the rectangle R
+        if (intersect(node->rectangle,R)) {
+            for (int i = 0; i < node->number_of_children; i++) {
+                Search(node->children[i], R, result_set, count);
+            }
+        }
+    }
+}
 
 
