@@ -37,3 +37,21 @@ typedef struct hilbert_r_tree{
 }hilbert_r_tree;
 
 
+void pre_order_traversal(NODE node) {
+    if (node == NULL) {
+        return;
+    }
+    if (node->is_leaf){
+        printf("Leaf node containing point (%d, %d)\n", node->pnt->p_x, node->pnt->p_y);
+    } else {
+        printf("Internal node with MBR: Top-left (%d, %d), Bottom-right (%d, %d)\n",
+               node->rectangle.topleft_x, node->rectangle.topleft_y, node->rectangle.bottomright_x, node->rectangle.bottomright_y);
+    }
+
+    for (int i = 0; i < node->number_of_children; i++) {
+        pre_order_traversal(node->children[i]);
+    }
+}
+
+
+//pre_order_traversal(tree.root);
