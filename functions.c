@@ -347,7 +347,7 @@ TREE readData(char*str12){
         p->p_x = x;
         p->p_y = y;
         p->hilbert_value = pointToHV(x,y,CurveOrder);
-        //insertNewPointinTREE(t,p);
+        insertNewPointinTREE(t,p);
     }
     fclose(fp);
     return t;
