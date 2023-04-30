@@ -410,17 +410,14 @@ TREE readData(char*str12){
         p->p_x = x;
         p->p_y = y;
         p->hilbert_value = pointToHV(x,y,CurveOrder);
-        //printf("%d %d\n",x,y);
         insertNewPointinTREE(t,p);
-        //pre_order_traversal(t->root);
-        //printf("\n \n");
     }
     fclose(fp);
     return t;
 };
 
 int main(){
-    char str[10]="view.txt";
+    char str[10]="data.txt";
 
     int x_high = 0;
     int y_high = 0;
