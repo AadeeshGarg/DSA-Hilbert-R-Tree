@@ -194,6 +194,11 @@ void adjust_node(NODE node){
 
     // if children are leaf nodes
     if(node->children[0]->is_leaf){
+        node->largest_hilbert_value = node->children[0]->pnt->hilbert_value;
+        node->rectangle.bottomright_x  =  node->children[0]->pnt->p_x; 
+        node->rectangle.topleft_x  =  node->children[0]->pnt->p_x;
+        node->rectangle.topleft_y  =  node->children[0]->pnt->p_y;
+        node->rectangle.bottomright_y  =  node->children[0]->pnt->p_y; 
         for(int i=0;i<node->number_of_children;i++){
             //update largest_hilbert_value
             if (node->children[i]->pnt->hilbert_value > node->largest_hilbert_value){
@@ -216,6 +221,11 @@ void adjust_node(NODE node){
     }
     // if children are not leaf nodes
     else{
+        node->largest_hilbert_value = node->children[0]->largest_hilbert_value;
+        node->rectangle.topleft_x  =  node->children[0]->rectangle.topleft_x;
+        node->rectangle.topleft_y  =  node->children[0]->rectangle.topleft_y;
+        node->rectangle.bottomright_x  =  node->children[0]->rectangle.bottomright_x;
+        node->rectangle.bottomright_y  =  node->children[0]->rectangle.bottomright_y;
         for(int i=0;i<node->number_of_children;i++){
             //update largest_hilbert_value
             if (node->children[i]->largest_hilbert_value > node->largest_hilbert_value){
