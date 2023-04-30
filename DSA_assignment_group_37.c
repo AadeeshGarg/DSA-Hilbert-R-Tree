@@ -5,7 +5,7 @@
 #define DIMENSIONS 2
 #define m 2
 #define M 4
-#define CurveOrder 8
+#define CurveOrder 20
 
 typedef struct hilbert_node* NODE;
 typedef struct hilbert_r_tree* TREE;
@@ -15,10 +15,10 @@ typedef struct point{
     int hilbert_value;
 }point;
 typedef struct rect{
-    int topleft_x;
-    int topleft_y;
-    int bottomright_x;
-    int bottomright_y;
+    int x_low;
+    int y_high;
+    int x_high;
+    int y_low;
 }rect;
 struct hilbert_node{
     NODE parent;
@@ -37,12 +37,11 @@ struct hilbert_r_tree{
 TREE createNewTree();
 NODE createNewLeaf(point*);
 NODE createNewNode();
-
 void pre_order_traversal(NODE);
 void changeFrame(int, int*, int*, int); 
 int pointToHV (int , int , int ); 
 bool intersect(rect , rect ); 
-void Search(NODE , rect , point**, int*);
+void Search(NODE , rect);
 void adjust_node(NODE); 
 NODE chooseLeaf(NODE , point* );
 void insertIntoNode(NODE , NODE );
@@ -52,11 +51,6 @@ void balanceTree(NODE, int );
 void handleOverflow(NODE, TREE );
 TREE insertNewPointinTREE(TREE, point*);
 TREE readData(char*);
-
-
-
-
-
 
 TREE createNewTree(){
     TREE t = (TREE)malloc(sizeof(struct hilbert_r_tree));
@@ -73,10 +67,10 @@ NODE createNewLeaf(point* p){
     n->number_of_children = 0;
     n->parent = NULL;
     n->pnt = p;
-    n->rectangle.topleft_x = p->p_x;
-    n->rectangle.bottomright_x = p->p_x;
-    n->rectangle.topleft_y = p->p_y;
-    n->rectangle.bottomright_y = p->p_y;
+    n->rectangle.x_low = p->p_x;
+    n->rectangle.x_high = p->p_x;
+    n->rectangle.y_high = p->p_y;
+    n->rectangle.y_low = p->p_y;
     return n;
 }
 
@@ -101,7 +95,7 @@ void pre_order_traversal(NODE node) {
         printf("Leaf node containing point (%d, %d)\n", node->pnt->p_x, node->pnt->p_y);
     } else {
         printf("Internal node with MBR: Top-left (%d, %d), Bottom-right (%d, %d)\n",
-                node->rectangle.topleft_x, node->rectangle.topleft_y, node->rectangle.bottomright_x, node->rectangle.bottomright_y);
+                node->rectangle.x_low, node->rectangle.y_high, node->rectangle.x_high, node->rectangle.y_low);
                 for (int i = 0; i < node->number_of_children; i++) {
                     pre_order_traversal(node->children[i]);
                 }
@@ -144,38 +138,36 @@ int pointToHV (int x, int y, int n) //n is order of hilbert curve
 
 bool intersect(rect r, rect q) {
     // Check if r is completely to the left of q or vice versa
-    if (r.bottomright_x < q.topleft_x || q.bottomright_x < r.topleft_x) {
+    if (r.x_high < q.x_low || q.x_high < r.x_low) {
         return false;
     }
     // Check if r is completely above q or vice versa
-    if (r.bottomright_y > q.topleft_y || q.bottomright_y > r.topleft_y) {
+    if (r.y_low > q.y_high || q.y_low > r.y_high) {
         return false;
     }
     // If the above two conditions are false, then r and q must overlap
     return true;
 }
 
-void Search(NODE node, rect R, point **result_set, int *count) {
+void Search(NODE node, rect R) {
     // result set should be dynamically alloted memory
     if (node == NULL) {
+        printf("Tree is Empty");
         return;
     }
     if (node->is_leaf) {
         // Check if the leaf node lies inside/on the rectangle R
-        if (node->pnt->p_x >= R.topleft_x && node->pnt->p_x <= R.bottomright_x && 
-            node->pnt->p_y <= R.topleft_y && node->pnt->p_y >= R.bottomright_y) {
-            // put point in result set
-            if((*count)==(sizeof(result_set)/sizeof(point*))){
-                result_set = realloc(result_set,2*(*count)*(sizeof(point*)));
-            }
-            *(result_set + *count) = node->pnt;
-            (*count)++;
+        if (node->pnt->p_x >= R.x_low && node->pnt->p_x <= R.x_high && 
+            node->pnt->p_y <= R.y_high && node->pnt->p_y >= R.y_low) {
+            // print point
+            printf("Point ( %d , %d )\n",node->pnt->p_x,node->pnt->p_y);
+            
         }
     } else {
         // Check if the internal node intersects the rectangle R
         if (intersect(node->rectangle,R)) {
             for (int i = 0; i < node->number_of_children; i++) {
-                Search(node->children[i], R, result_set, count);
+                Search(node->children[i], R);
             }
         }
     }
@@ -195,37 +187,37 @@ void adjust_node(NODE node){
     // if children are leaf nodes
     if(node->children[0]->is_leaf){
         node->largest_hilbert_value = node->children[0]->pnt->hilbert_value;
-        node->rectangle.bottomright_x  =  node->children[0]->pnt->p_x; 
-        node->rectangle.topleft_x  =  node->children[0]->pnt->p_x;
-        node->rectangle.topleft_y  =  node->children[0]->pnt->p_y;
-        node->rectangle.bottomright_y  =  node->children[0]->pnt->p_y; 
+        node->rectangle.x_high  =  node->children[0]->pnt->p_x; 
+        node->rectangle.x_low  =  node->children[0]->pnt->p_x;
+        node->rectangle.y_high  =  node->children[0]->pnt->p_y;
+        node->rectangle.y_low  =  node->children[0]->pnt->p_y; 
         for(int i=0;i<node->number_of_children;i++){
             //update largest_hilbert_value
             if (node->children[i]->pnt->hilbert_value > node->largest_hilbert_value){
                 node->largest_hilbert_value = node->children[i]->pnt->hilbert_value;
             }
             //update rectangle
-            if( node->children[i]->pnt->p_x > node->rectangle.bottomright_x){
-                node->rectangle.bottomright_x  =  node->children[i]->pnt->p_x; 
+            if( node->children[i]->pnt->p_x > node->rectangle.x_high){
+                node->rectangle.x_high  =  node->children[i]->pnt->p_x; 
             }
-            if( node->children[i]->pnt->p_x < node->rectangle.topleft_x){
-                node->rectangle.topleft_x  =  node->children[i]->pnt->p_x; 
+            if( node->children[i]->pnt->p_x < node->rectangle.x_low){
+                node->rectangle.x_low  =  node->children[i]->pnt->p_x; 
             }
-            if( node->children[i]->pnt->p_y > node->rectangle.topleft_y){
-                node->rectangle.topleft_y  =  node->children[i]->pnt->p_y; 
+            if( node->children[i]->pnt->p_y > node->rectangle.y_high){
+                node->rectangle.y_high  =  node->children[i]->pnt->p_y; 
             }
-            if( node->children[i]->pnt->p_y < node->rectangle.bottomright_y){
-                node->rectangle.bottomright_y  =  node->children[i]->pnt->p_y; 
+            if( node->children[i]->pnt->p_y < node->rectangle.y_low){
+                node->rectangle.y_low  =  node->children[i]->pnt->p_y; 
             }
         }
     }
     // if children are not leaf nodes
     else{
         node->largest_hilbert_value = node->children[0]->largest_hilbert_value;
-        node->rectangle.topleft_x  =  node->children[0]->rectangle.topleft_x;
-        node->rectangle.topleft_y  =  node->children[0]->rectangle.topleft_y;
-        node->rectangle.bottomright_x  =  node->children[0]->rectangle.bottomright_x;
-        node->rectangle.bottomright_y  =  node->children[0]->rectangle.bottomright_y;
+        node->rectangle.x_low  =  node->children[0]->rectangle.x_low;
+        node->rectangle.y_high  =  node->children[0]->rectangle.y_high;
+        node->rectangle.x_high  =  node->children[0]->rectangle.x_high;
+        node->rectangle.y_low  =  node->children[0]->rectangle.y_low;
         for(int i=0;i<node->number_of_children;i++){
             //update largest_hilbert_value
             if (node->children[i]->largest_hilbert_value > node->largest_hilbert_value){
@@ -233,17 +225,17 @@ void adjust_node(NODE node){
             }
 
             //update rectangle
-            if( node->children[i]->rectangle.topleft_x < node->rectangle.topleft_x){
-                node->rectangle.topleft_x  =  node->children[i]->rectangle.topleft_x; 
+            if( node->children[i]->rectangle.x_low < node->rectangle.x_low){
+                node->rectangle.x_low  =  node->children[i]->rectangle.x_low; 
             }
-            if( node->children[i]->rectangle.topleft_y > node->rectangle.topleft_y){
-                node->rectangle.topleft_y  =  node->children[i]->rectangle.topleft_y; 
+            if( node->children[i]->rectangle.y_high > node->rectangle.y_high){
+                node->rectangle.y_high  =  node->children[i]->rectangle.y_high; 
             }
-            if( node->children[i]->rectangle.bottomright_x > node->rectangle.bottomright_x){
-                node->rectangle.bottomright_x  =  node->children[i]->rectangle.bottomright_x; 
+            if( node->children[i]->rectangle.x_high > node->rectangle.x_high){
+                node->rectangle.x_high  =  node->children[i]->rectangle.x_high; 
             }
-            if( node->children[i]->rectangle.bottomright_y < node->rectangle.bottomright_y){
-                node->rectangle.bottomright_y  =  node->children[i]->rectangle.bottomright_y; 
+            if( node->children[i]->rectangle.y_low < node->rectangle.y_low){
+                node->rectangle.y_low  =  node->children[i]->rectangle.y_low; 
             }
 
         }
@@ -427,13 +419,25 @@ TREE readData(char*str12){
     return t;
 };
 
-
-
 int main(){
-    TREE t;
-    char str[10]="data.txt";
-    t = readData(str);
-    pre_order_traversal(t->root);
-    return 0;
+    char str[10]="view.txt";
 
+    int x_high = 0;
+    int y_high = 0;
+    int x_low = 0;
+    int y_low = 0;
+   
+    TREE t;
+
+    t = readData(str);
+
+    pre_order_traversal(t->root);
+    printf("\n");
+
+    rect r = {.x_high = x_high,.x_low=x_low,.y_low=y_low,.y_high=y_high};
+    printf("The following points lie inside/on the query rectangle - \n");
+    Search(t->root,r);
+    
+    return 0;
 }
+
