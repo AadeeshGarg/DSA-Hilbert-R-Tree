@@ -2,20 +2,26 @@
 #include<stdlib.h>
 #include<stdbool.h>
 #include<math.h>
+
+
 #define DIMENSIONS 2
 #define m 2
 #define M 4
 #define CurveOrder 20
 
+
 typedef struct hilbert_node* NODE;
 typedef struct hilbert_r_tree* TREE;
 
-// Define the point struct which stores x, y coordinates and a hilbert value
+
+// Define the point struct which stores x , y coordinates and a hilbert value
 typedef struct point {
 int p_x;
 int p_y;
 int hilbert_value;
 } point;
+
+
 // Define the rectangle struct which stores the boundaries of a rectangle
 typedef struct rect {
 int x_low;
@@ -23,26 +29,30 @@ int y_high;
 int x_high;
 int y_low;
 } rect;
+
+
 // Define the structure of each node in the hilbert R-tree
 struct hilbert_node {
-NODE parent; // Pointer to the parent node
-bool is_leaf; // Indicates if the node is a leaf or not
-point* pnt; // Pointer to a point if the node is a leaf
-rect rectangle; // Rectangle defined by the boundaries of the points in the subtree
-int number_of_children; // Number of children nodes
-int largest_hilbert_value; // Largest hilbert value among children in the subtree
-NODE* children; // Array of pointers to child nodes
+NODE parent;                // Pointer to the parent node
+bool is_leaf;               // Indicates if the node is a leaf or not
+point* pnt;                 // Pointer to a point if the node is a leaf
+rect rectangle;             // Rectangle defined by the boundaries of the points in the subtree
+int number_of_children;     // Number of children nodes
+int largest_hilbert_value;  // Largest hilbert value among children in the subtree
+NODE* children;             // Array of pointers to child nodes
 };
+
+
 // Define the structure of the hilbert R-tree
 struct hilbert_r_tree {
-NODE root; // Pointer to the root node of the tree
-int hilbert_curve_order; // Order of the hilbert curve used to construct the tree
+NODE root;                  // Pointer to the root node of the tree
+int hilbert_curve_order;    // Order of the hilbert curve used to construct the tree
 };
+
 
 TREE createNewTree();
 NODE createNewLeaf(point*);
 NODE createNewNode();
-
 void pre_order_traversal(NODE);
 void changeFrame(int, int*, int*, int);
 int pointToHV (int , int , int );
@@ -55,8 +65,10 @@ NODE* secondGenList(NODE, int);
 int splitCount(int, int );
 void balanceTree(NODE, int );
 void handleOverflow(NODE, TREE );
+TREE adjustTree(NODE,TREE);
 TREE insertNewPointinTREE(TREE, point*);
 TREE readData(char*);
+
 
 // Create a new Hilbert R-Tree
 TREE createNewTree(){
@@ -68,6 +80,7 @@ TREE createNewTree(){
     t->hilbert_curve_order = CurveOrder;
     return t;
 }
+
 
 NODE createNewLeaf(point* p){
     // Allocate memory for a new Hilbert R-tree node
@@ -93,16 +106,18 @@ NODE createNewLeaf(point* p){
     return n;
 }
 
+
 NODE createNewNode(){
 NODE n = (NODE)malloc(sizeof(struct hilbert_node)); // allocate memory for the node
-n->is_leaf = false; // set the node as an internal node
-n->children = (NODE*)calloc(M+1,sizeof(NODE)); // allocate memory for the children of the node
-n->largest_hilbert_value = 0; // initialize largest Hilbert value to 0
-n->number_of_children = 0; // initialize number of children to 0
-n->parent = NULL; // set the parent node as null
-n->pnt = NULL; // set the point in the node as null
-return n; // return the newly created node
+n->is_leaf = false;                             // set the node as an internal node
+n->children = (NODE*)calloc(M+1,sizeof(NODE));  // allocate memory for the children of the node
+n->largest_hilbert_value = 0;                   // initialize largest Hilbert value to 0
+n->number_of_children = 0;                      // initialize number of children to 0
+n->parent = NULL;                               // set the parent node as null
+n->pnt = NULL;                                  // set the point in the node as null
+return n;                                       // return the newly created node
 }
+
 
 void pre_order_traversal(NODE node) {
     // Check if the tree is empty
@@ -114,7 +129,8 @@ void pre_order_traversal(NODE node) {
     // If node is a leaf, print its point coordinates
     if (node->is_leaf) {
         printf("Leaf node containing point (%d, %d)\n", node->pnt->p_x, node->pnt->p_y);
-    } else { // Otherwise, node is an internal node
+    } else { 
+        // Otherwise, node is an internal node
         // Print the node's minimum bounding rectangle coordinates
         printf("Internal node with MBR: Top-left (%d, %d), Bottom-right (%d, %d)\n",
                 node->rectangle.x_low, node->rectangle.y_high, node->rectangle.x_high, node->rectangle.y_low);
@@ -125,6 +141,7 @@ void pre_order_traversal(NODE node) {
         }
     }
 }
+
 
 void changeFrame(int n, int *x, int *y, int quadrant) {
     switch(quadrant) {
@@ -149,6 +166,7 @@ void changeFrame(int n, int *x, int *y, int quadrant) {
             break;
     }
 }
+
 
 int pointToHV (int x, int y, int n) {
 int length = 0; // Initialize length of curve to zero.
@@ -178,6 +196,7 @@ bool intersect(rect r, rect q) {
    return true;
 }
 
+
 void Search(NODE node, rect R) {
     // Check if tree is empty
     if (node == NULL) {
@@ -202,6 +221,7 @@ void Search(NODE node, rect R) {
         }
     }
 }
+
 
 void adjust_node(NODE node){
    if (node == NULL) {
@@ -271,6 +291,7 @@ void adjust_node(NODE node){
    }
 }
 
+
 // Choose a leaf node in the tree where a new point can be inserted
 NODE chooseLeaf(NODE node, point* p){
     if(node->children[0] == NULL){ // if the node is a leaf
@@ -295,6 +316,7 @@ NODE chooseLeaf(NODE node, point* p){
         return chooseLeaf(node->children[i],p); // recursively call chooseLeaf on the child node with the closest largest hilbert value
     }
 }
+
 
 void insertIntoNode(NODE parent, NODE child){
 child->parent = parent;
@@ -321,6 +343,7 @@ parent->children[j] = child;
 parent->number_of_children++;
 }
 
+
 // This function creates a list of all the second generation nodes of a given grandparent node
 // The list contains pointers to each of these nodes
 // The function takes the grandparent node and the number of children of the grandparent node as input
@@ -343,6 +366,7 @@ for(int i = 0;i<grandParent->number_of_children;i++)
 return nodelist;
 }
 
+
 int splitCount(int eleCount, int nodeCount)
 {
    while (eleCount>=nodeCount)
@@ -350,6 +374,7 @@ int splitCount(int eleCount, int nodeCount)
    return eleCount;
   
 }
+
 
 // A function to balance the nodes of the tree by rearranging the children of the parent node
 void balanceTree(NODE parent, int sum)
@@ -385,6 +410,7 @@ void balanceTree(NODE parent, int sum)
     // Free the list of second generation children
     free(nodelist);
 }
+
 
 void handleOverflow(NODE toInsert, TREE rTree)
 {
@@ -435,15 +461,8 @@ void handleOverflow(NODE toInsert, TREE rTree)
     }
 }
 
-// Insert a new point in the tree
-TREE insertNewPointinTREE(TREE t, point* p){
 
-    // Find the leaf node where the point should be inserted
-    NODE n = chooseLeaf(t->root,p);
-
-    // Insert the point into the leaf node
-    insertIntoNode(n,createNewLeaf(p));
-
+TREE adjustTree(NODE n, TREE t){
     // Handle overflow if the node has too many children
     while(n->number_of_children == 5){
         handleOverflow(n,t);
@@ -458,10 +477,22 @@ TREE insertNewPointinTREE(TREE t, point* p){
         adjust_node(n);
         n = n->parent;
     }
+    return t;
+}
 
+
+// Insert a new point in the tree
+TREE insertNewPointinTREE(TREE t, point* p){
+    // Find the leaf node where the point should be inserted
+    NODE n = chooseLeaf(t->root,p);
+    // Insert the point into the leaf node
+    insertIntoNode(n,createNewLeaf(p));
+    // adjust the tree
+    t = adjustTree(n,t);
     // Return the updated tree
     return t;
 }
+
 
 TREE readData(char* str12){
     // create a new tree
@@ -487,15 +518,16 @@ TREE readData(char* str12){
     return t;
 }
 
+
 int main(){
     // Define a character array to store the file name
-    char str[10] = "data.txt";
+    char str[10] = "view.txt";
 
     // Initialize variables for the query rectangle
-    int x_high = 0;
-    int y_high = 0;
-    int x_low = 0;
-    int y_low = 0;
+    int x_high = 210000;
+    int y_high = 310000;
+    int x_low = 200000;
+    int y_low = 300000;
 
     // Declare a pointer to a quadtree structure
     TREE t;
