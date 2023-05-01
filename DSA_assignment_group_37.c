@@ -30,7 +30,7 @@ bool is_leaf; // Indicates if the node is a leaf or not
 point* pnt; // Pointer to a point if the node is a leaf
 rect rectangle; // Rectangle defined by the boundaries of the points in the subtree
 int number_of_children; // Number of children nodes
-int largest_hilbert_value; // Largest hilbert value of any point in the subtree
+int largest_hilbert_value; // Largest hilbert value among children in the subtree
 NODE* children; // Array of pointers to child nodes
 };
 // Define the structure of the hilbert R-tree
@@ -163,6 +163,7 @@ changeFrame(i,&x,&y,quadrant);
 }
 return length; // Return the length of the curve.
 }
+
 
 bool intersect(rect r, rect q) {
    // Check if r is completely to the left of q or vice versa
