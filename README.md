@@ -1,14 +1,6 @@
 # DSA-Hilbert-R-Tree
 Assignment for CS F211
 
-Group 37 -- PROJECT 2
-AADEESH GARG        2021A7PS0446P
-AKSHAT SHETYE       2021A7PS2426P
-AMANDEEP SINGH      2021A7PS0575P
-RIJUL BASSAMBOO     2021A7PS0009P
-VEDANT TULI         2021A7PS0435P
-
-
 To compile the code and run it, write the folowing on the unix terminal -
 
 gcc DSA_assignment_group_37.c
