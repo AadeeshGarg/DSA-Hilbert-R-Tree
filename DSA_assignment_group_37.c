@@ -463,15 +463,6 @@ void handleOverflow(NODE toInsert, TREE rTree)
 
 
 TREE adjustTree(NODE n, TREE t){
-    // Handle overflow if the node has too many children
-    while(n->number_of_children == 5){
-        handleOverflow(n,t);
-        if(n->parent==NULL){
-            break;
-        }
-        n = n->parent;
-    }
-
     // Adjust the tree from the leaf node up to the root
     while(n!=NULL){
         adjust_node(n);
@@ -485,8 +476,20 @@ TREE adjustTree(NODE n, TREE t){
 TREE insertNewPointinTREE(TREE t, point* p){
     // Find the leaf node where the point should be inserted
     NODE n = chooseLeaf(t->root,p);
+    if(n->number_of_children < 4){
     // Insert the point into the leaf node
     insertIntoNode(n,createNewLeaf(p));
+    }else if(n->number_of_children == 4){
+        insertIntoNode(n,createNewLeaf(p));
+    // Handle overflow if the node has too many children
+        while(n->number_of_children == 5){
+            handleOverflow(n,t);
+            if(n->parent==NULL){
+                break;
+            }
+            n = n->parent;
+        }
+    }
     // adjust the tree
     t = adjustTree(n,t);
     // Return the updated tree
@@ -524,10 +527,10 @@ int main(){
     char str[10] = "view.txt";
 
     // Initialize variables for the query rectangle
-    int x_high = 210000;
-    int y_high = 310000;
-    int x_low = 200000;
-    int y_low = 300000;
+    int x_high = 0;
+    int y_high = 0;
+    int x_low = 0;
+    int y_low = 0;
 
     // Declare a pointer to a quadtree structure
     TREE t;
